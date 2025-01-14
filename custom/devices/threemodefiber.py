@@ -1,5 +1,5 @@
 """
-Ideal Fiber Polarization Controller
+Ideal Three Mode Fiber
 """
 import numpy as np
 
@@ -28,48 +28,54 @@ from photon_weave.operation import Operation, FockOperationType
 logger = get_custom_logger(Loggers.Devices)
 
 
-class Fpc(GenericDevice):
+class Threemodefiber(GenericDevice):
     """
     Implements Ideal Single Photon Source
     """
     ports = {
-        "twist-1": Port(
-            label="twist-1",
-            direction="input",
-            signal=None,
-            signal_type=GenericFloatSignal,
-            device=None),
-        "twist-2": Port(
-            label="twist-2",
-            direction="input",
-            signal=None,
-            signal_type=GenericFloatSignal,
-            device=None),
-        "twist-3": Port(
-            label="twist-3",
-            direction="input",
-            signal=None,
-            signal_type=GenericFloatSignal,
-            device=None),
-        "qubit": Port(
-            label="qubit",
+        "850nm-in": Port(
+            label="850nm-in",
             direction="input",
             signal=None,
             signal_type=GenericQuantumSignal,
             device=None),
-       "output": Port(
-            label="output",
+        "1300nm-in": Port(
+            label="1300nm-in",
+            direction="input",
+            signal=None,
+            signal_type=GenericQuantumSignal,
+            device=None),
+        "1550nm-in": Port(
+            label="1550nm-in",
+            direction="input",
+            signal=None,
+            signal_type=GenericQuantumSignal,
+            device=None),
+       "850nm-out": Port(
+            label="850nm-out",
             direction="output",
             signal=None,
             signal_type=GenericQuantumSignal,
             device=None),
-    }
+       "1300nm-out": Port(
+            label="1300nm-out",
+            direction="output",
+            signal=None,
+            signal_type=GenericQuantumSignal,
+            device=None),
+       "1550nm-out": Port(
+            label="1550nm-out",
+            direction="output",
+            signal=None,
+            signal_type=GenericQuantumSignal,
+            device=None),
+        }
 
     # Gui Configuration
-    gui_icon = icon_list.PHASE_SHIFT
+    gui_icon = icon_list.FIBER
     gui_tags = ["ideal"]
-    gui_name = "FPC"
-    gui_documentation = "fpc.md"
+    gui_name = "3MF"
+    gui_documentation = "threemodefiber.md"
 
     power_peak = 0
     power_average = 0
