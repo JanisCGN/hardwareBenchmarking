@@ -1,0 +1,139 @@
+"""
+Ideal Bell Measurement
+"""
+import numpy as np
+
+from qureed.devices import (GenericDevice,
+                           wait_input_compute,
+                           coordinate_gui,
+                           schedule_next_event,
+                           log_action,
+                           ensure_output_compute)
+from qureed.devices.port import Port
+from qureed.signals import (GenericSignal,
+                           GenericBoolSignal,
+                           GenericIntSignal,
+                           GenericQuantumSignal,
+                           GenericTimeSignal,
+                           GenericFloatSignal)
+
+from qureed.gui.icons import icon_list
+from qureed.simulation import Simulation, SimulationType, ModeManager
+from qureed.experiment import Experiment
+from qureed.extra.logging import Loggers, get_custom_logger
+from qureed.backend.envelope_backend import EnvelopeBackend
+from photon_weave.state.envelope import Envelope
+from photon_weave.operation import Operation, FockOperationType
+
+logger = get_custom_logger(Loggers.Devices)
+
+
+class Bm(GenericDevice):
+    """
+    Implements Ideal Single Photon Source
+    """
+    ports = {
+        "input-1": Port(
+            label="input-1",
+            direction="input",
+            signal=None,
+            signal_type=GenericQuantumSignal,
+            device=None),
+        "input-2": Port(
+            label="input-2",
+            direction="input",
+            signal=None,
+            signal_type=GenericQuantumSignal,
+            device=None),
+       "output": Port(
+            label="measurement result",
+            direction="output",
+            signal=None,
+            signal_type=GenericIntSignal,
+            device=None),
+    }
+
+    # Gui Configuration
+    gui_icon = icon_list.DETECTOR
+    gui_tags = ["ideal"]
+    gui_name = "BM"
+    gui_documentation = "bm.md"
+
+    power_peak = 0
+    power_average = 0
+    reference = None
+
+    def __init__(self, name=None, time=0, uid=None):
+        super().__init__(name=name, uid=uid)
+        self.photon_num = None
+
+    def set_photon_num(self, photon_num: int):
+        """
+        Set the number of photons the source should emit in a pulse
+        """
+        photon_num_sig = GenericIntSignal()
+        photon_num_sig.set_int(photon_num)
+        self.register_signal(signal=photon_num_sig, port_label="photon_num")
+        photon_num_sig.set_computed()
+    
+
+    @ensure_output_compute
+    @coordinate_gui
+    @wait_input_compute
+    def compute_outputs(self, *args, **kwargs):
+        simulation = Simulation.get_instance()
+        if simulation.simulation_type is SimulationType.FOCK:
+            self.simulate_fock()
+
+    def simulate_fock(self):
+        """
+        Fock Simulation
+        """
+        simulation = Simulation.get_instance()
+        backend = simulation.get_backend()
+
+        # Get the mode manager
+        mm = ModeManager()
+        # Generate new mode
+        mode = mm.create_new_mode()
+        # How many photons should be created
+        photon_num = self.ports["photon_num"].signal.contents
+        
+        # Initialize photon number state in the mode
+        backend.initialize_number_state(photon_num, [mm.get_mode_index(mode)])
+
+        logger.info(
+            "Source - %s - assisning mode %s to signal on port %s",
+            self.name, mm.get_mode_index(mode),
+            self.ports["output"].label)
+        self.ports["output"].signal.set_contents(
+            timestamp=0,
+            mode_id=mode)
+        self.ports["output"].signal.set_computed()
+
+    def set_photon_num(self, photon_num: int):
+        """
+        Set the number of photons the source should emit in a pulse
+        """
+        self.photon_num = photon_num
+
+    @coordinate_gui
+    @schedule_next_event
+    @log_action
+    def des(self, time, *args, **kwargs):
+        if "photon_num" in kwargs["signals"]:
+            self.set_photon_num(float(kwargs["signals"]["photon_num"].contents))
+        elif "trigger" in kwargs["signals"] and self.photon_num is not None:
+            n = self.photon_num
+            # Creating new envelope
+            env = Envelope()
+            # Applying operation
+            op = Operation(FockOperationType.Creation, apply_count=n)
+            env.fock.apply_operation(op)
+            # Creating output
+            signal = GenericQuantumSignal()
+            signal.set_contents(content=env)
+            result = [("output", signal, time)]
+            return result
+        else:
+            raise Exception("Unknown Photon Num")

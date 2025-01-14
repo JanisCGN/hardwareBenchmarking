@@ -1,0 +1,41 @@
+{
+    "devices": [
+        {
+            "device": "custom.devices.spdc.Spdc",
+            "location": [
+                289.0000000000001,
+                240.8333333333332
+            ],
+            "name": null,
+            "uuid": "2b1cd493-e7a5-45a6-a03b-1a6a9176ca3a"
+        },
+        {
+            "device": "custom.devices.memory.Memory",
+            "location": [
+                410.33333333333337,
+                212.83333333333326
+            ],
+            "name": null,
+            "uuid": "fa569e0e-3005-43a3-9ca0-5c5ac0e17245"
+        },
+        {
+            "device": "custom.devices.memory.Memory",
+            "location": [
+                798.3333333333335,
+                286.1666666666667
+            ],
+            "name": null,
+            "uuid": "6e779f10-abb3-4c88-8964-f978c5668cf4"
+        },
+        {
+            "device": "custom.devices.fpc.Fpc",
+            "location": [
+                547.662744522095,
+                186.83333333333326
+            ],
+            "name": null,
+            "uuid": "460ca43d-6e14-41ca-92ca-bb13704399bd"
+        }
+    ],
+    "connections": []
+}
